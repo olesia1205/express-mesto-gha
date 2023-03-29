@@ -16,7 +16,8 @@ module.exports.createCard = (req, res) => {
 };
 
 module.exports.deleteCard = (req, res) => {
-  Card.findByIdAndDelete(req.params._id)
+  console.log(req.params.cardId);
+  Card.findByIdAndDelete(req.params.cardId)
     .then((card) => res.status(201).send(card))
     .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
 };
