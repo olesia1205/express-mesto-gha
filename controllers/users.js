@@ -52,8 +52,11 @@ module.exports.updateUser = (req, res) => {
       }
     })
     .catch((err) => {
+      console.log(err.name);
       if (err.name === 'CastError') {
         res.status(400).send({ message: 'Невалидный id пользователя' });
+      } else if (err.name === 'ValidationError') {
+        res.status(400).send({ message: 'Произошла ошибка валидации полей' });
       } else if (err.message === 'User not found') {
         res.status(404).send({ message: 'Пользователь по указанному _id не найден' });
       } else {
