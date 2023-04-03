@@ -1,7 +1,5 @@
 {
     "env": {
-        "browser": true,
-        "commonjs": true,
         "es2021": true,
         "node": true
     },
@@ -13,9 +11,6 @@
     "parserOptions": {
         "ecmaVersion": "latest"
     },
-    "plugins": [
-        "react"
-    ],
     "rules": {        
         "linebreak-style": 1,        
         "no-underscore-dangle": [
@@ -23,6 +18,6 @@
             { "allow": ["_id"] }
         ],
         "no-unused-vars": "warn",
-        "no-console": "off"
+        "no-console": "warn"
     }
 }
