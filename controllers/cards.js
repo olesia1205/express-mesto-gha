@@ -1,5 +1,9 @@
 const http2 = require('node:http2');
 const Card = require('../models/card');
+const BadRequestError = require('../errors/BadRequestError');
+const NotFoundError = require('../errors/NotFoundError');
+const ServerError = require('../errors/ServerError');
+const Forbidden = require('../errors/ForbiddenError');
 
 const BAD_REQUEST = http2.constants.HTTP_STATUS_BAD_REQUEST;
 const NOT_FOUND = http2.constants.HTTP_STATUS_NOT_FOUND;
