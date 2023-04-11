@@ -7,12 +7,13 @@ const FORBIDDEN = http2.constants.HTTP_STATUS_FORBIDDEN;
 const SERVER_ERROR = http2.constants.HTTP_STATUS_INTERNAL_SERVER_ERROR;
 
 module.exports = (req, res, next) => {
-  const token = req.headers.authorization;
+  let token = req.headers.authorization;
 
   if (!token) {
     return res.status(UNAUTHORIZED).send({ message: 'Необходима авторизация' });
   }
 
+  token = token.replace('Bearer ', '');
   let payload;
 
   try {

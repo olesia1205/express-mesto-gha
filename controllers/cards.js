@@ -6,6 +6,7 @@ const NOT_FOUND = http2.constants.HTTP_STATUS_NOT_FOUND;
 const SERVER_ERROR = http2.constants.HTTP_STATUS_INTERNAL_SERVER_ERROR;
 const OK = http2.constants.HTTP_STATUS_OK;
 const CREATED = http2.constants.HTTP_STATUS_CREATED;
+const FORBIDDEN = http2.constants.HTTP_STATUS_FORBIDDEN;
 
 module.exports.getCards = (req, res) => {
   Card.find({})
@@ -33,6 +34,8 @@ module.exports.deleteCard = (req, res) => {
     .then((card) => {
       if (!card) {
         throw new Error('Card not found');
+      } else if (card.owner !== req.user._id) {
+        throw new Error('Forbidden');
       } else {
         res.status(OK).send(card);
       }
@@ -42,6 +45,8 @@ module.exports.deleteCard = (req, res) => {
         res.status(BAD_REQUEST).send({ message: 'Невалидный id карточки' });
       } else if (err.message === 'Card not found') {
         res.status(NOT_FOUND).send({ message: 'Карточка с указанным _id не найдена' });
+      } else if (err.message === 'Forbidden') {
+        res.status(FORBIDDEN).send({ message: 'Нет доступа на удаление чужой карточки' });
       } else {
         res.status(SERVER_ERROR).send({ message: 'Произошла ошибка на сервере' });
       }

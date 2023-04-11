@@ -18,6 +18,7 @@
             { "allow": ["_id"] }
         ],
         "no-unused-vars": "warn",
-        "no-console": "warn"
+        "no-console": "warn",
+        "consistent-return": "warn"
     }
 }

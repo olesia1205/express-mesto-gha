@@ -2,7 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const routes = require('./routes');
-// const login = require('./controllers/users');
+const { createUser, login } = require('./controllers/users');
 
 const app = express();
 
@@ -10,15 +10,16 @@ const app = express();
 //   MONGO_URL = 'mongodb://127.0.0.1:27017/mestodb',
 // } = process.env;
 
-app.use((req, res, next) => {
-  req.user = {
-    _id: '6424200f18e41c07a03eb9e8',
-  };
-  next();
-});
+// app.use((req, res, next) => {
+//   req.user = {
+//     _id: '64356be7bc387c571b1d1829',
+//   };
+//   next();
+// });
 
+app.post('/signin', express.json(), login);
+app.post('/signup', express.json(), createUser);
 app.use('/', routes);
-// app.post('/signin', login);
 
 async function connect() {
   await mongoose.connect(process.env.MONGO_URL, {});
