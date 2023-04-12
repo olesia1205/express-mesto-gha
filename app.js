@@ -27,6 +27,7 @@ app.use('/', routes);
 app.use((err, req, res, next) => {
   const { statusCode = SERVER_ERROR, message } = err;
   res.status(statusCode).send({ message: statusCode === SERVER_ERROR ? 'Произошла ошибка на сервере' : message });
+  next();
   // res.status(err.statusCode).send({ message: err.message });
 });
 

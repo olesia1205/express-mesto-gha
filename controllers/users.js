@@ -2,93 +2,83 @@ const http2 = require('node:http2');
 const bcrypt = require('bcrypt');
 const User = require('../models/user');
 const { generateToken } = require('../utils/jwt');
+const BadRequestError = require('../errors/BadRequestError');
+const NotFoundError = require('../errors/NotFoundError');
+const ConflictError = require('../errors/ConflictError');
+const UnauthorizedError = require('../errors/UnauthorizedError');
 
-const BAD_REQUEST = http2.constants.HTTP_STATUS_BAD_REQUEST;
-const NOT_FOUND = http2.constants.HTTP_STATUS_NOT_FOUND;
-const SERVER_ERROR = http2.constants.HTTP_STATUS_INTERNAL_SERVER_ERROR;
 const OK = http2.constants.HTTP_STATUS_OK;
 const CREATED = http2.constants.HTTP_STATUS_CREATED;
-const CONFLICT = http2.constants.HTTP_STATUS_CONFLICT;
 const UNAUTHORIZED = http2.constants.HTTP_STATUS_UNAUTHORIZED;
 
 const SOLT_ROUNDS = 10;
 const MONGO_DUPLICATE_ERROR_CODE = 11000;
 
-module.exports.getUsers = (req, res) => {
+module.exports.getUsers = (req, res, next) => {
   User.find({})
     .then((users) => res.status(OK).send(users))
-    .catch(() => res.status(SERVER_ERROR).send({ message: 'Произошла ошибка на сервере' }));
+    .catch(next);
 };
 
-module.exports.getMe = (req, res) => {
+module.exports.getMe = (req, res, next) => {
   User.findById(req.user._id)
     .then((user) => res.status(OK).send(user))
-    .catch(() => res.status(SERVER_ERROR).send({ message: 'Произошла ошибка на сервере' }));
+    .catch(next);
 };
 
-module.exports.getUserById = (req, res) => {
+module.exports.getUserById = (req, res, next) => {
   User.findById(req.params.userId)
     .then((user) => {
       if (!user) {
-        throw new Error('Not found');
+        throw new NotFoundError('Пользователь по указанному _id не найден');
       } else {
         res.status(OK).send(user);
       }
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(BAD_REQUEST).send({ message: 'Невалидный id пользователя' });
-      } else if (err.message === 'Not found') {
-        res.status(NOT_FOUND).send({ message: 'Пользователь по указанному _id не найден' });
-      } else {
-        res.status(SERVER_ERROR).send({ message: 'Произошла ошибка на сервере' });
+        next(new BadRequestError('Невалидный id пользователя'));
+        return;
       }
+      next(err);
     });
 };
 
-module.exports.updateUser = (req, res) => {
+module.exports.updateUser = (req, res, next) => {
   const { name, about } = req.body;
 
   User.findByIdAndUpdate(req.user._id, { name, about }, { new: true, runValidators: true })
     .then((user) => {
       if (!user) {
-        throw new Error('User not found');
+        throw new NotFoundError('Пользователь по указанному _id не найден');
       } else {
         res.status(OK).send(user);
       }
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(BAD_REQUEST).send({ message: 'Произошла ошибка валидации полей' });
-      } else if (err.message === 'User not found') {
-        res.status(NOT_FOUND).send({ message: 'Пользователь по указанному _id не найден' });
-      } else {
-        res.status(SERVER_ERROR).send({ message: 'Произошла ошибка на сервере' });
+        next(new BadRequestError('Произошла ошибка валидации полей'));
+        return;
       }
+      next(err);
     });
 };
 
-module.exports.updateAvatar = (req, res) => {
+module.exports.updateAvatar = (req, res, next) => {
   const { avatar } = req.body;
 
   User.findByIdAndUpdate(req.user._id, { avatar }, { new: true, runValidators: true })
     .then((user) => {
       if (!user) {
-        throw new Error('User not found');
+        throw new NotFoundError('Пользователь по указанному _id не найден');
       } else {
         res.status(OK).send(user);
       }
     })
-    .catch((err) => {
-      if (err.message === 'User not found') {
-        res.status(NOT_FOUND).send({ message: 'Пользователь по указанному _id не найден' });
-      } else {
-        res.status(SERVER_ERROR).send({ message: 'Произошла ошибка на сервере' });
-      }
-    });
+    .catch(next);
 };
 
-module.exports.createUser = async (req, res) => {
+module.exports.createUser = async (req, res, next) => {
   const {
     name, about, avatar, email, password,
   } = req.body;
@@ -102,21 +92,23 @@ module.exports.createUser = async (req, res) => {
       return res.status(CREATED).send(newUser);
     }
     return (newUser);
-  } catch (error) {
+  } catch (err) {
     if (!email || !password) {
-      return res.status(BAD_REQUEST).send({ message: 'Не передан email или password' });
+      next(new BadRequestError('Не передан email или password'));
+      return;
     }
-    if (error.name === 'ValidationError') {
-      return res.status(BAD_REQUEST).send({ message: 'Не валидные почта или пароль' });
+    if (err.name === 'ValidationError') {
+      next(new BadRequestError('Не валидные почта или пароль'));
+      return;
     }
-    if (error.code === MONGO_DUPLICATE_ERROR_CODE) {
-      return res.status(CONFLICT).send({ message: 'Такой пользователь уже существует' });
+    if (err.code === MONGO_DUPLICATE_ERROR_CODE) {
+      next(new ConflictError('Такой пользователь уже существует'));
     }
-    return res.status(SERVER_ERROR).send({ message: 'Произошла ошибка на сервере' });
+    next(err);
   }
 };
 
-module.exports.login = async (req, res) => {
+module.exports.login = async (req, res, next) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -126,7 +118,8 @@ module.exports.login = async (req, res) => {
   try {
     const user = await User.findOne({ email }).select('+password');
     if (!user) {
-      return res.status(UNAUTHORIZED).send({ message: 'Неправильные почта или пароль' });
+      next(new UnauthorizedError('Неправильные почта или пароль'));
+      return;
     }
 
     const matched = await bcrypt.compare(password, user.password);
@@ -137,7 +130,7 @@ module.exports.login = async (req, res) => {
     const JWT = await generateToken({ _id: user._id });
 
     return res.status(OK).send({ JWT });
-  } catch (error) {
-    return res.status(SERVER_ERROR).send({ message: 'Не удалось авторизоваться' });
+  } catch (err) {
+    next(err);
   }
 };
