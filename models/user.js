@@ -18,6 +18,10 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
     default: 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
+    validate: {
+      validator: (value) => /^https?:\/\/(w{3}\.)?[a-zA-Z0-9@:%._+~#=]{2,256}\.[a-z]{2,6}\.[a-zA-Z0-9\-._~:/?#[]@!$&'\(\)*\+,;=]#?$/.test(value),
+      message: 'Неправильный формат url-адреса',
+    },
   },
   email: {
     type: String,
