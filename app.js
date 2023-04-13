@@ -2,7 +2,7 @@ require('dotenv').config();
 const http2 = require('node:http2');
 const express = require('express');
 const mongoose = require('mongoose');
-const { celebrate, Joi } = require('celebrate');
+const { celebrate, Joi, errors } = require('celebrate');
 const routes = require('./routes');
 const { createUser, login } = require('./controllers/users');
 
@@ -28,6 +28,7 @@ app.post('/signup', express.json(), celebrate({
 }), createUser);
 app.use('/', routes);
 
+app.use(errors());
 app.use((err, req, res, next) => {
   const { statusCode = SERVER_ERROR, message } = err;
   res.status(statusCode).send({ message: statusCode === SERVER_ERROR ? 'Произошла ошибка на сервере' : message });
