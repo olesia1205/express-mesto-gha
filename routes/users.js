@@ -19,7 +19,7 @@ const validateUpdateUser = celebrate({
   }),
 });
 
-const urlRegExp = /^https?:\/\/(w{3}\.)?[a-zA-Z0-9@:%._+~#=]{2,256}\.[a-z]{2,6}\.[a-zA-Z0-9\-._~:/?#[]@!$&'\(\)*\+,;=]#?$/;
+const urlRegExp = /^https?:\/\/(www.)?[a-zA-Z0-9-._~:/?#[\]@!$&'()*+,;=]*#?$/;
 
 const validateUpdateAvatar = celebrate({
   body: Joi.object().keys({

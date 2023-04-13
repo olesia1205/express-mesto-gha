@@ -2,6 +2,7 @@ require('dotenv').config();
 const http2 = require('node:http2');
 const express = require('express');
 const mongoose = require('mongoose');
+const { celebrate, Joi } = require('celebrate');
 const routes = require('./routes');
 const { createUser, login } = require('./controllers/users');
 
@@ -9,26 +10,28 @@ const SERVER_ERROR = http2.constants.HTTP_STATUS_INTERNAL_SERVER_ERROR;
 
 const app = express();
 
-// const {
-//   MONGO_URL = 'mongodb://127.0.0.1:27017/mestodb',
-// } = process.env;
+app.post('/signin', express.json(), celebrate({
+  body: Joi.object().keys({
+    email: Joi.string().required().email(),
+    password: Joi.string().min(8).required().alphanum(),
+  }),
+}), login);
 
-// app.use((req, res, next) => {
-//   req.user = {
-//     _id: '64356be7bc387c571b1d1829',
-//   };
-//   next();
-// });
-
-app.post('/signin', express.json(), login);
-app.post('/signup', express.json(), createUser);
+app.post('/signup', express.json(), celebrate({
+  body: Joi.object().keys({
+    name: Joi.string().min(2).max(30),
+    about: Joi.string().min(2).max(30),
+    avatar: Joi.string().uri({ scheme: ['http', 'https'] }),
+    email: Joi.string().required().email(),
+    password: Joi.string().min(8).required().alphanum(),
+  }),
+}), createUser);
 app.use('/', routes);
 
 app.use((err, req, res, next) => {
   const { statusCode = SERVER_ERROR, message } = err;
   res.status(statusCode).send({ message: statusCode === SERVER_ERROR ? 'Произошла ошибка на сервере' : message });
   next();
-  // res.status(err.statusCode).send({ message: err.message });
 });
 
 async function connect() {

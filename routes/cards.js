@@ -6,7 +6,7 @@ const {
   getCards, deleteCard, createCard, putLike, deleteLike,
 } = require('../controllers/cards');
 
-const urlRegExp = /^https?:\/\/(w{3}\.)?[a-zA-Z0-9@:%._+~#=]{2,256}\.[a-z]{2,6}\.[a-zA-Z0-9\-._~:/?#[]@!$&'\(\)*\+,;=]#?$/;
+const urlRegExp = /^https?:\/\/(www.)?[a-zA-Z0-9-._~:/?#[\]@!$&'()*+,;=]*#?$/;
 
 const validateCreateCard = celebrate({
   body: Joi.object().keys({

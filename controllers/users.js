@@ -93,6 +93,7 @@ module.exports.createUser = async (req, res, next) => {
     }
     return (newUser);
   } catch (err) {
+    console.log(err);
     if (!email || !password) {
       next(new BadRequestError('Не передан email или password'));
       return;
