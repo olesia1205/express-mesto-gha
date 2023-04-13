@@ -23,7 +23,7 @@ app.post('/signup', express.json(), celebrate({
     about: Joi.string().min(2).max(30),
     avatar: Joi.string().uri({ scheme: ['http', 'https'] }),
     email: Joi.string().required().email(),
-    password: Joi.string().min(8).required().alphanum(),
+    password: Joi.string().min(8).required(),
   }),
 }), createUser);
 app.use('/', routes);
@@ -37,9 +37,9 @@ app.use((err, req, res, next) => {
 
 async function connect() {
   await mongoose.connect(process.env.MONGO_URL, {});
-  console.log(`Server connected db ${process.env.MONGO_URL}`);
+  // console.log(`Server connected db ${process.env.MONGO_URL}`);
   await app.listen(process.env.PORT);
-  console.log(`Server listen port ${process.env.PORT}`);
+  // console.log(`Server listen port ${process.env.PORT}`);
 }
 
 connect();
